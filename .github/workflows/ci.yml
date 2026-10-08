@@ -32,7 +32,10 @@ jobs:
 
   build-windows:
     needs: deps-check
-    runs-on: windows-latest
+    # Pin to windows-2022: the image ships Visual Studio 17 2022, which
+    # matches the generator below. `windows-latest` moved to VS 2026 and no
+    # longer provides a `Visual Studio 17 2022` instance.
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
       - name: Configure

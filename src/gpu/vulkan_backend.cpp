@@ -60,6 +60,10 @@ private:
     bool initialized_ = false;
     std::string init_error_;
     std::string submit_error_;
+    // Memory manager for the command buffer currently being processed; used
+    // by internal handlers to reach guest data areas. Declared unconditionally
+    // because SubmitCommandBuffer sets/clears it even when Vulkan is compiled out.
+    MemoryManager* active_memory_ = nullptr;
 
 #ifdef SR_HAS_VULKAN
     VkInstance instance_ = VK_NULL_HANDLE;
@@ -71,9 +75,6 @@ private:
     bool debug_utils_enabled_ = false;
 
     ComputeExecutor compute_executor_;
-    // Memory manager for the command buffer currently being processed;
-    // used by internal handlers to reach guest data areas.
-    MemoryManager* active_memory_ = nullptr;
 
     // Record an initialization error and release resources created so far.
     void Fail(const char* what, VkResult result);
