@@ -1,0 +1,14 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 3, "opcode": "Mov", "type": "F32", "operands": [{"id": 2, "kind": "constant", "type": "F32", "value": 0}, {"id": 1, "kind": "constant", "type": "F32", "value": 1}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

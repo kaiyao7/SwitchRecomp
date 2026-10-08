@@ -1,0 +1,14 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 3, "opcode": "Convert", "type": "S64", "operands": [{"id": 1, "kind": "constant", "type": "U64", "value": 0}, {"id": 2, "kind": "constant", "type": "F64", "value": 0}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

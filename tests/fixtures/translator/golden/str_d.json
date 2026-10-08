@@ -1,0 +1,14 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 3, "opcode": "Store", "type": "Void", "operands": [{"id": 2, "kind": "constant", "type": "U64", "value": 1}, {"id": 1, "kind": "constant", "type": "F64", "value": 0}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

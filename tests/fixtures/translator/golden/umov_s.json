@@ -1,0 +1,14 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 4, "opcode": "ExtractLane", "type": "U32", "operands": [{"id": 1, "kind": "constant", "type": "U64", "value": 3}, {"id": 2, "kind": "constant", "type": "V128:F32x4", "value_lo": "0x0000000000000001", "value_hi": "0x0000000000000000"}, {"id": 3, "kind": "constant", "type": "U32", "value": 2}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

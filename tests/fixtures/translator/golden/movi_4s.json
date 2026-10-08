@@ -1,0 +1,14 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 3, "opcode": "Mov", "type": "V128:F32x4", "operands": [{"id": 1, "kind": "constant", "type": "V128:F32x4", "value_lo": "0x0000000000000000", "value_hi": "0x0000000000000000"}, {"id": 2, "kind": "constant", "type": "V128:F32x4", "value_lo": "0x3fc000003fc00000", "value_hi": "0x3fc000003fc00000"}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

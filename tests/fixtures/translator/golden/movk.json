@@ -1,0 +1,15 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 3, "opcode": "And", "type": "U64", "operands": [{"id": 2, "kind": "constant", "type": "U64", "value": 0}, {"id": 1, "kind": "constant", "type": "U64", "value": 18446744069414649855}]},
+            {"id": 5, "opcode": "Or", "type": "U64", "operands": [{"id": 3, "kind": "instruction"}, {"id": 4, "kind": "constant", "type": "U64", "value": 327680}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

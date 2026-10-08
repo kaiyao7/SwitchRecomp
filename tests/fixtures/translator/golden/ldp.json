@@ -1,0 +1,17 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 3, "opcode": "Add", "type": "U64", "operands": [{"id": 1, "kind": "constant", "type": "U64", "value": 2}, {"id": 2, "kind": "constant", "type": "U64", "value": 0}]},
+            {"id": 4, "opcode": "Load", "type": "U64", "operands": [{"id": 3, "kind": "instruction"}]},
+            {"id": 6, "opcode": "Add", "type": "U64", "operands": [{"id": 1, "kind": "constant", "type": "U64", "value": 2}, {"id": 5, "kind": "constant", "type": "U64", "value": 8}]},
+            {"id": 7, "opcode": "Load", "type": "U64", "operands": [{"id": 6, "kind": "instruction"}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

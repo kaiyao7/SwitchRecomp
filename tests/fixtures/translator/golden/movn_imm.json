@@ -1,0 +1,14 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 2, "opcode": "Not", "type": "U32", "operands": [{"id": 1, "kind": "constant", "type": "U32", "value": 0}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

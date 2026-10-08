@@ -1,0 +1,14 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 1, "opcode": "Nop", "type": "Void", "operands": []}
+          ]
+        }
+      ]
+    }
+  ]
+}

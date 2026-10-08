@@ -1,0 +1,409 @@
+{
+  "version": "0.1",
+  "source": "ARM Architecture Reference Manual ARMv8-A (AArch64)",
+  "note": "Encoding tables for the 20 core instructions of Phase 1. Each entry uses fixed_bits (the bits that identify the opcode) and a field list. Use (encoding & mask) == value to identify; extract fields from field bit ranges.",
+  "instructions": [
+    {
+      "mnemonic": "ADD",
+      "variant": "immediate",
+      "category": "data_processing_immediate",
+      "syntax": "ADD <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}",
+      "sf_bit": 31,
+      "fixed_bits": { "value": "0b00010001000000000000000000000000", "mask": "0b01111111100000000000000000000000" },
+      "mask": "0x7F800000",
+      "value": "0x11000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit (X), 0=32-bit (W)" },
+        { "name": "op", "bits": "30", "desc": "0=ADD, 1=SUB" },
+        { "name": "S", "bits": "29", "desc": "set NZCV flags" },
+        { "name": "sh", "bits": "23", "desc": "0=LSL #0, 1=LSL #12" },
+        { "name": "imm12", "bits": "22-10", "desc": "unsigned immediate" },
+        { "name": "Rn", "bits": "9-5", "desc": "source register" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination register" }
+      ],
+      "affects_flags": "if S=1: N,Z,C,V",
+      "pseudocode": "Rd = Rn + ZeroExtend(imm12 << (sh*12))"
+    },
+    {
+      "mnemonic": "SUB",
+      "variant": "immediate",
+      "category": "data_processing_immediate",
+      "syntax": "SUB <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}",
+      "sf_bit": 31,
+      "mask": "0x7F800000",
+      "value": "0x51000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "op", "bits": "30", "desc": "0=ADD, 1=SUB" },
+        { "name": "S", "bits": "29", "desc": "set NZCV flags" },
+        { "name": "sh", "bits": "23", "desc": "0=LSL #0, 1=LSL #12" },
+        { "name": "imm12", "bits": "22-10", "desc": "unsigned immediate" },
+        { "name": "Rn", "bits": "9-5", "desc": "source register" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination register" }
+      ],
+      "affects_flags": "if S=1: N,Z,C,V",
+      "pseudocode": "Rd = Rn - ZeroExtend(imm12 << (sh*12))"
+    },
+    {
+      "mnemonic": "ADD",
+      "variant": "shifted_register",
+      "category": "data_processing_register",
+      "syntax": "ADD <Wd>, <Wn>, <Wm>{, <shift> #<amount>}",
+      "sf_bit": 31,
+      "mask": "0x7F200000",
+      "value": "0x0B000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "op", "bits": "30", "desc": "0=ADD, 1=SUB" },
+        { "name": "S", "bits": "29", "desc": "set NZCV" },
+        { "name": "shift", "bits": "23-22", "desc": "00=LSL,01=LSR,10=ASR,11=RRX" },
+        { "name": "Rm", "bits": "20-16", "desc": "second source register" },
+        { "name": "imm6", "bits": "15-10", "desc": "shift amount" },
+        { "name": "Rn", "bits": "9-5", "desc": "first source" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "if S=1: N,Z,C,V",
+      "pseudocode": "Rd = Rn + Shift(Rm, shift, imm6)"
+    },
+    {
+      "mnemonic": "SUB",
+      "variant": "shifted_register",
+      "category": "data_processing_register",
+      "syntax": "SUB <Wd>, <Wn>, <Wm>{, <shift> #<amount>}",
+      "sf_bit": 31,
+      "mask": "0x7F200000",
+      "value": "0x4B000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "op", "bits": "30", "desc": "0=ADD, 1=SUB" },
+        { "name": "S", "bits": "29", "desc": "set NZCV" },
+        { "name": "shift", "bits": "23-22", "desc": "00=LSL,01=LSR,10=ASR,11=RRX" },
+        { "name": "Rm", "bits": "20-16", "desc": "second source" },
+        { "name": "imm6", "bits": "15-10", "desc": "shift amount" },
+        { "name": "Rn", "bits": "9-5", "desc": "first source" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "if S=1: N,Z,C,V",
+      "pseudocode": "Rd = Rn - Shift(Rm, shift, imm6)"
+    },
+    {
+      "mnemonic": "AND",
+      "variant": "shifted_register",
+      "category": "logical_register",
+      "syntax": "AND <Wd>, <Wn>, <Wm>{, <shift> #<amount>}",
+      "sf_bit": 31,
+      "mask": "0x7F200000",
+      "value": "0x0A000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "opc", "bits": "30-29", "desc": "00=AND,01=BIC,10=ORR,11=ORN, plus EOR at opc=10 with bit28=1" },
+        { "name": "shift", "bits": "23-22", "desc": "00=LSL,01=LSR,10=ASR,11=RRX" },
+        { "name": "Rm", "bits": "20-16", "desc": "second source" },
+        { "name": "imm6", "bits": "15-10", "desc": "shift amount" },
+        { "name": "Rn", "bits": "9-5", "desc": "first source" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "no (ANDS sets flags; separate encoding)",
+      "pseudocode": "Rd = Rn AND Shift(Rm, shift, imm6)"
+    },
+    {
+      "mnemonic": "ORR",
+      "variant": "shifted_register",
+      "category": "logical_register",
+      "syntax": "ORR <Wd>, <Wn>, <Wm>{, <shift> #<amount>}",
+      "sf_bit": 31,
+      "mask": "0x7F200000",
+      "value": "0x2A000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "opc", "bits": "30-29", "desc": "10=ORR" },
+        { "name": "shift", "bits": "23-22", "desc": "00=LSL,01=LSR,10=ASR,11=RRX" },
+        { "name": "Rm", "bits": "20-16", "desc": "second source" },
+        { "name": "imm6", "bits": "15-10", "desc": "shift amount" },
+        { "name": "Rn", "bits": "9-5", "desc": "first source" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "Rd = Rn OR Shift(Rm, shift, imm6)"
+    },
+    {
+      "mnemonic": "EOR",
+      "variant": "shifted_register",
+      "category": "logical_register",
+      "syntax": "EOR <Wd>, <Wn>, <Wm>{, <shift> #<amount>}",
+      "sf_bit": 31,
+      "mask": "0x7F200000",
+      "value": "0x4A000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "opc", "bits": "30-29", "desc": "10=EOR (with bit28=1)" },
+        { "name": "shift", "bits": "23-22", "desc": "00=LSL,01=LSR,10=ASR,11=RRX" },
+        { "name": "Rm", "bits": "20-16", "desc": "second source" },
+        { "name": "imm6", "bits": "15-10", "desc": "shift amount" },
+        { "name": "Rn", "bits": "9-5", "desc": "first source" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "Rd = Rn XOR Shift(Rm, shift, imm6)"
+    },
+    {
+      "mnemonic": "MOVZ",
+      "variant": "wide_immediate",
+      "category": "wide_immediate",
+      "syntax": "MOVZ <Wd>, #<imm>{, LSL #<shift>}",
+      "note": "assembler alias MOV <Wd>, #<imm> maps to MOVZ",
+      "sf_bit": 31,
+      "mask": "0x7F800000",
+      "value": "0x52800000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "opc", "bits": "30-29", "desc": "10=MOVZ" },
+        { "name": "hw", "bits": "22-21", "desc": "shift amount / 16 (0,1,2,3)" },
+        { "name": "imm16", "bits": "20-5", "desc": "16-bit immediate" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "Rd = ZeroExtend(imm16) << (hw*16)"
+    },
+    {
+      "mnemonic": "MOVN",
+      "variant": "wide_immediate",
+      "category": "wide_immediate",
+      "syntax": "MOVN <Wd>, #<imm>{, LSL #<shift>}",
+      "note": "assembler alias MVN <Wd>, #<imm> maps to MOVN",
+      "sf_bit": 31,
+      "mask": "0x7F800000",
+      "value": "0x12800000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "opc", "bits": "30-29", "desc": "00=MOVN" },
+        { "name": "hw", "bits": "22-21", "desc": "shift amount / 16" },
+        { "name": "imm16", "bits": "20-5", "desc": "16-bit immediate" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "Rd = NOT(ZeroExtend(imm16) << (hw*16))"
+    },
+    {
+      "mnemonic": "LSL",
+      "variant": "immediate (alias of UBFM)",
+      "category": "bitfield",
+      "syntax": "LSL <Wd>, <Wn>, #<shift>",
+      "note": "assembler alias of UBFM with immr=0, imms = N:esize-1-shift",
+      "sf_bit": 31,
+      "mask": "0x7F800000",
+      "value": "0x53000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "N", "bits": "22", "desc": "register size flag" },
+        { "name": "immr", "bits": "21-16", "desc": "rotate right amount (0 for LSL)" },
+        { "name": "imms", "bits": "15-10", "desc": "mask msb" },
+        { "name": "Rn", "bits": "9-5", "desc": "source" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "Rd = Rn << shift"
+    },
+    {
+      "mnemonic": "LSR",
+      "variant": "immediate (alias of UBFM)",
+      "category": "bitfield",
+      "syntax": "LSR <Wd>, <Wn>, #<shift>",
+      "note": "assembler alias of UBFM with immr=shift, imms=esize-1",
+      "sf_bit": 31,
+      "mask": "0x7F800000",
+      "value": "0x53000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "N", "bits": "22", "desc": "register size flag" },
+        { "name": "immr", "bits": "21-16", "desc": "rotate right amount (= shift)" },
+        { "name": "imms", "bits": "15-10", "desc": "mask msb" },
+        { "name": "Rn", "bits": "9-5", "desc": "source" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "Rd = Rn >> shift (logical)"
+    },
+    {
+      "mnemonic": "ASR",
+      "variant": "immediate (alias of SBFM)",
+      "category": "bitfield",
+      "syntax": "ASR <Wd>, <Wn>, #<shift>",
+      "note": "assembler alias of SBFM with immr=shift, imms=esize-1",
+      "sf_bit": 31,
+      "mask": "0x7F800000",
+      "value": "0x13000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "N", "bits": "22", "desc": "register size flag" },
+        { "name": "immr", "bits": "21-16", "desc": "rotate right amount (= shift)" },
+        { "name": "imms", "bits": "15-10", "desc": "mask msb" },
+        { "name": "Rn", "bits": "9-5", "desc": "source" },
+        { "name": "Rd", "bits": "4-0", "desc": "destination" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "Rd = Rn >> shift (arithmetic)"
+    },
+    {
+      "mnemonic": "LDR",
+      "variant": "immediate (unsigned offset)",
+      "category": "loads_stores",
+      "syntax": "LDR <Wt>, [<Xn|SP>, #<pimm>]",
+      "sf_bit": 30,
+      "mask": "0xFFC00000",
+      "value": "0xB9400000",
+      "fields": [
+        { "name": "size", "bits": "31-30", "desc": "00=byte? no: 10=32bit(W), 11=64bit(X); 01=16bit, 00=8bit" },
+        { "name": "V", "bits": "26", "desc": "0=GP, 1=SIMD" },
+        { "name": "opc", "bits": "23-22", "desc": "01=LDR unsigned offset" },
+        { "name": "imm12", "bits": "21-10", "desc": "unsigned offset scaled by size" },
+        { "name": "Rn", "bits": "9-5", "desc": "base register" },
+        { "name": "Rt", "bits": "4-0", "desc": "destination register" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "Rt = Mem[Rn + ZeroExtend(imm12 << log2(size))]"
+    },
+    {
+      "mnemonic": "STR",
+      "variant": "immediate (unsigned offset)",
+      "category": "loads_stores",
+      "syntax": "STR <Wt>, [<Xn|SP>, #<pimm>]",
+      "sf_bit": 30,
+      "mask": "0xFFC00000",
+      "value": "0xB9000000",
+      "fields": [
+        { "name": "size", "bits": "31-30", "desc": "10=32bit, 11=64bit" },
+        { "name": "V", "bits": "26", "desc": "0=GP, 1=SIMD" },
+        { "name": "opc", "bits": "23-22", "desc": "00=STR unsigned offset" },
+        { "name": "imm12", "bits": "21-10", "desc": "unsigned offset scaled" },
+        { "name": "Rn", "bits": "9-5", "desc": "base register" },
+        { "name": "Rt", "bits": "4-0", "desc": "source register" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "Mem[Rn + ZeroExtend(imm12 << log2(size))] = Rt"
+    },
+    {
+      "mnemonic": "B",
+      "variant": "unconditional",
+      "category": "branch",
+      "syntax": "B <label>",
+      "mask": "0xFC000000",
+      "value": "0x14000000",
+      "fields": [
+        { "name": "op", "bits": "31", "desc": "0=B, 1=BL" },
+        { "name": "imm26", "bits": "25-0", "desc": "signed offset, scaled by 4, sign-extended" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "PC = PC + SignExtend(imm26 << 2)"
+    },
+    {
+      "mnemonic": "BL",
+      "variant": "with_link",
+      "category": "branch",
+      "syntax": "BL <label>",
+      "mask": "0xFC000000",
+      "value": "0x94000000",
+      "fields": [
+        { "name": "op", "bits": "31", "desc": "0=B, 1=BL" },
+        { "name": "imm26", "bits": "25-0", "desc": "signed offset scaled by 4" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "X30 = PC+4; PC = PC + SignExtend(imm26 << 2)"
+    },
+    {
+      "mnemonic": "B.cond",
+      "variant": "conditional",
+      "category": "branch_conditional",
+      "syntax": "B.<cond> <label>",
+      "mask": "0xFF000010",
+      "value": "0x54000000",
+      "fields": [
+        { "name": "imm19", "bits": "23-5", "desc": "signed offset scaled by 4" },
+        { "name": "cond", "bits": "3-0", "desc": "condition code (EQ=0,NE=1,CS=2,CC=3,MI=4,PL=5,VS=6,VC=7,HI=8,LS=9,GE=10,LT=11,GT=12,LE=13,AL=14,NV=15)" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "if CondCheck(cond, NZCV) then PC = PC + SignExtend(imm19 << 2)"
+    },
+    {
+      "mnemonic": "CMP",
+      "variant": "immediate (alias of SUBS)",
+      "category": "data_processing_immediate",
+      "syntax": "CMP <Wn>, #<imm>",
+      "note": "alias of SUBS with Rd=ZR",
+      "sf_bit": 31,
+      "mask": "0x7F800000",
+      "value": "0x71000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "op", "bits": "30", "desc": "1=SUB" },
+        { "name": "S", "bits": "29", "desc": "1 (set flags)" },
+        { "name": "sh", "bits": "23", "desc": "shift" },
+        { "name": "imm12", "bits": "22-10", "desc": "immediate" },
+        { "name": "Rn", "bits": "9-5", "desc": "source" },
+        { "name": "Rd", "bits": "4-0", "desc": "ZR (31)" }
+      ],
+      "affects_flags": "N,Z,C,V",
+      "pseudocode": "result = Rn - imm; set NZCV; discard result"
+    },
+    {
+      "mnemonic": "CBZ",
+      "variant": "compare_and_branch_zero",
+      "category": "branch_conditional",
+      "syntax": "CBZ <Wt>, <label>",
+      "sf_bit": 31,
+      "mask": "0x7E000000",
+      "value": "0x34000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "op", "bits": "24", "desc": "0=CBZ, 1=CBNZ" },
+        { "name": "imm19", "bits": "23-5", "desc": "signed offset scaled by 4" },
+        { "name": "Rt", "bits": "4-0", "desc": "register to compare" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "if Rt == 0 then PC = PC + SignExtend(imm19 << 2)"
+    },
+    {
+      "mnemonic": "CBNZ",
+      "variant": "compare_and_branch_nonzero",
+      "category": "branch_conditional",
+      "syntax": "CBNZ <Wt>, <label>",
+      "sf_bit": 31,
+      "mask": "0x7E000000",
+      "value": "0x35000000",
+      "fields": [
+        { "name": "sf", "bits": "31", "desc": "1=64-bit, 0=32-bit" },
+        { "name": "op", "bits": "24", "desc": "0=CBZ, 1=CBNZ" },
+        { "name": "imm19", "bits": "23-5", "desc": "signed offset scaled by 4" },
+        { "name": "Rt", "bits": "4-0", "desc": "register to compare" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "if Rt != 0 then PC = PC + SignExtend(imm19 << 2)"
+    },
+    {
+      "mnemonic": "RET",
+      "variant": "unconditional_register",
+      "category": "branch_register",
+      "syntax": "RET {<Xn>}",
+      "note": "Xn defaults to X30 (LR); encoding uses bit 31 opc bits; alias of RET",
+      "mask": "0xFFFFFC1F",
+      "value": "0xD65F0000",
+      "fields": [
+        { "name": "opc", "bits": "31-30", "desc": "10 for RET" },
+        { "name": "Rn", "bits": "9-5", "desc": "target address register (default X30)" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "PC = Xn"
+    },
+    {
+      "mnemonic": "NOP",
+      "variant": "hint",
+      "category": "system",
+      "syntax": "NOP",
+      "mask": "0xFFFFFFFF",
+      "value": "0xD503201F",
+      "fields": [],
+      "affects_flags": "no",
+      "pseudocode": "no operation"
+    }
+  ]
+}

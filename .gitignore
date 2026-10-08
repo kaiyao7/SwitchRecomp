@@ -1,0 +1,66 @@
+# Build output
+build/
+out/
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.exe
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+install_manifest.txt
+compile_commands.json
+
+# IDE
+.vscode/
+.vs/
+*.user
+*.suo
+.idea/
+CMakeUserPresets.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Generated
+tests/fixtures/*.actual
+benchmarks/results/
+
+# Local IDE / agent workspace (never publish)
+.trae/
+
+# E2E test byproducts (generated at repo root by tests)
+e2e_recomp_output.c
+e2e_call_output.c
+e2e_image_elf.c
+e2e_image_nro.c
+e2e_threads.c
+e2e_float_output.c
+e2e_fcmp_output.c
+e2e_fcvt_output.c
+e2e_intcmp_lt_taken.c
+e2e_intcmp_ge_taken.c
+e2e_intcmp_lt_not_taken.c
+e2e_fcvtzs_sat_pos.c
+e2e_fcvtzs_sat_neg.c
+e2e_fp64_add.c
+e2e_fp64_sat64.c
+e2e_fp64_nan.c
+e2e_fp_misc_abs.c
+e2e_fp_misc_fcsel.c
+e2e_fp_misc_fcvt.c
+e2e_fp_round_sqrt.c
+e2e_fp_round_frint.c
+e2e_simd1_output.c
+e2e_simd2_output.c
