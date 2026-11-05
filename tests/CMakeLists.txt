@@ -23,6 +23,7 @@ add_executable(sr_tests
     unit/runtime/test_svc.cpp
     unit/runtime/test_hle_service.cpp
     unit/runtime/test_loader.cpp
+    unit/runtime/test_nso_loader.cpp
     unit/runtime/test_svc_thread.cpp
     unit/gpu/test_command_processor.cpp
     unit/gpu/test_vulkan_backend.cpp

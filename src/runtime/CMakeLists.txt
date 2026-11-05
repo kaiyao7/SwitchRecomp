@@ -6,6 +6,7 @@ add_library(sr_runtime STATIC
     hle_service.cpp
     elf_loader.cpp
     nro_loader.cpp
+    nso.cpp
     loader_common.cpp
 )
 target_include_directories(sr_runtime PUBLIC ${SR_INCLUDE_DIR})
