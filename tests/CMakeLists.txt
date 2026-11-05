@@ -12,6 +12,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(sr_tests
     unit/test_smoke.cpp
+    unit/common/test_numeric.cpp
     unit/ir/test_ir_build.cpp
     unit/ir/test_ir_serialize.cpp
     unit/translator/test_decode.cpp

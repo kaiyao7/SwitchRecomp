@@ -25,7 +25,10 @@ guest AArch64 machine code → Translate (decoder) → SSA-like IR → C code ge
   W^X semantics, minimal thread/synchronization SVCs.
 - **GPU (minimal)**: Maxwell FIFO command word parsing, command processor dispatch,
   Vulkan backend with a working compute-pipeline proof of path.
-- **Tests**: 260+ unit / golden-fixture / end-to-end tests; clean rebuilds are
+- **Numeric substrate** (`common/numeric.h`, header-only): bit-exact, UB-free AArch64
+  width/shift/flag/FP/conversion semantics, with a throughput benchmark
+  (`bench_numeric`) backing the "inlines to zero overhead" claim.
+- **Tests**: 295 unit / golden-fixture / end-to-end tests; clean rebuilds are
   repeatable with all tests passing.
 
 ## What it deliberately is not
@@ -38,6 +41,26 @@ guest AArch64 machine code → Translate (decoder) → SSA-like IR → C code ge
   extracted from games. It only processes binaries you are legally entitled to
   use. Do not open issues or PRs containing copyrighted material.
 
+## Why this project exists: the numeric substrate
+
+The purpose of this repository is **the lowest-level numeric optimization for
+AArch64 → C static recompilation**. Translating instructions is the easy part;
+making every guest arithmetic / flag / FP / conversion operation bit-exact,
+undefined-behaviour-free, and still optimizable by the host compiler is the
+hard part. Plain C expressions are UB for arbitrary guest bit patterns
+(signed overflow, shift ≥ width, out-of-range float→int), and a host optimizer
+is allowed to exploit that UB — so a recompiler must first pin the semantics
+down in an explicit, inlineable layer.
+
+`include/switchrecomp/common/numeric.h` is that layer. It is header-only, all
+`static inline`, and folds to one or two host instructions at `-O2`. The full
+feasibility map — what is built and tested, what is designed but not yet built,
+and what needs external conditions — is in
+[`docs/design/numeric_semantics.md`](docs/design/numeric_semantics.md), with
+throughput numbers in `benchmarks/bench_numeric.cpp`. The numeric layer is the
+foundation; IR-level optimizations (constant folding, flag merging, fastmem)
+sit on top of it.
+
 ## Architecture
 
 Strict one-way module layering (enforced by `scripts/check_deps.py`):
@@ -49,9 +72,11 @@ common ← platform ← ir ← translator / codegen / runtime ← gpu
 - `include/switchrecomp/**`, `src/**` — framework code
 - `tests/unit/**`, `tests/integration/**` — GoogleTest suites
 - `tests/fixtures/**` — golden IR fixtures and embedded shader sources
-- `docs/design/**` — design documents (SIMD architecture, FP compare/flags,
-  FP rounding, instruction coverage notes); kept in sync with the code
-- `benchmarks/` — translator / codegen / memory-manager micro-benchmarks
+- `docs/design/**` — design documents (numeric semantics + feasibility map,
+  SIMD architecture, FP compare/flags, FP rounding, instruction coverage notes);
+  kept in sync with the code
+- `benchmarks/` — translator / codegen / memory-manager / numeric-substrate
+  micro-benchmarks
 - `.github/workflows/ci.yml` — CI
 
 Design rule of thumb: explicit data structures and interfaces over implicit

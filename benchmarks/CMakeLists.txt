@@ -17,3 +17,7 @@ target_link_libraries(bench_codegen PRIVATE sr_codegen sr_ir sr_common benchmark
 
 add_executable(bench_memory bench_memory.cpp)
 target_link_libraries(bench_memory PRIVATE sr_runtime sr_platform sr_common benchmark::benchmark)
+
+# Numeric-substrate throughput: validates the "inline -> zero overhead" claim.
+add_executable(bench_numeric bench_numeric.cpp)
+target_link_libraries(bench_numeric PRIVATE sr_common benchmark::benchmark)
