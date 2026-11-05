@@ -664,8 +664,23 @@ TEST(Codegen, GeneratedCSyntaxValid) {
         f << code;
     }
 
-    std::string cmd = std::string("C:\\msys64\\ucrt64\\bin\\gcc.exe -fsyntax-only -I ") +
-                      SR_INCLUDE_DIR + " " + out_path;
+    // Invoke the C compiler by name from PATH. Avoid embedding an absolute
+    // compiler path in the command: cmd.exe treats a leading quoted token
+    // specially and such a path would be invalid on non-Windows runners.
+    // The syntax check is an optional enhancement; when no C compiler is on
+    // PATH (e.g. an MSVC-only runner) we skip instead of failing.
+#ifdef _WIN32
+    const char* null_dev = "nul";
+#else
+    const char* null_dev = "/dev/null";
+#endif
+    int probe = std::system((std::string("gcc --version > ") + null_dev + " 2>&1").c_str());
+    if (probe != 0) {
+        GTEST_SKIP() << "no C compiler (gcc) on PATH; skipping syntax check";
+    }
+
+    std::string cmd = std::string("gcc -fsyntax-only -I \"") +
+                      SR_INCLUDE_DIR + "\" \"" + out_path + "\" 2>&1";
     int rc = std::system(cmd.c_str());
-    EXPECT_EQ(rc, 0) << "gcc syntax check failed for generated C:\n" << code;
+    EXPECT_EQ(rc, 0) << "C syntax check failed for generated C:\n" << code;
 }
