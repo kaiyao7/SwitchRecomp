@@ -88,13 +88,14 @@
 | # | 可行性 | 状态 |
 |---|---|---|
 | 29 | codegen 直接摊平表达式（现状） | ✅ 已有 `codegen.cpp` |
-| 30 | codegen 改为发射本层的 `sr_numeric_*` 调用，消除 UB | 🟡 |
-| 31 | IR 层常量折叠 / DCE / 标志位合并（roadmap P5） | 🟡 |
-| 32 | 宿主编译器内联后零开销的基准验证 | 🟡 `bench_numeric`（见 §5） |
-| 33 | fastmem / 软 MMU 数值地址计算 | 🟡 |
-| 34 | 真实编译器 fixture（`clang -target aarch64`）交叉验证位级结果 | ⚪ |
+| 30 | 数值语义可发射进生成代码、且在宿主 `-O2` 下对 UB 边界输入仍位级正确 | ✅ `common/numeric_emit.h` + `tests/integration/test_numeric_codegen.cpp` |
+| 31 | codegen 全面改为发射本层调用（替换所有摊平表达式） | 🟡 |
+| 32 | IR 层常量折叠 / DCE / 标志位合并（roadmap P5） | 🟡 |
+| 33 | 宿主编译器内联后零开销的基准验证 | ✅ `bench_numeric`（见 §5） |
+| 34 | fastmem / 软 MMU 数值地址计算 | 🟡 |
+| 35 | 真实编译器 fixture（`clang -target aarch64`）交叉验证位级结果 | ⚪ |
 
-> 工程量的真实分布：3.1 与 3.4 是「大」的部分——即便已有 1–8、12–15、19–21、24–25 的✅，剩余指令族、舍入族与向量整数/归约仍需逐条构建 golden + 端到端。本清单把「可行性」显式化，避免把「能跑通几条指令」误当成「数值语义完备」。
+> 工程量的真实分布：3.1 与 3.4 是「大」的部分——即便已有 1–8、12–15、19–21、24–25、30、33 的✅，剩余指令族、舍入族与向量整数/归约仍需逐条构建 golden + 端到端。本清单把「可行性」显式化，避免把「能跑通几条指令」误当成「数值语义完备」。
 
 ## 4. 参考实现 API
 
@@ -106,11 +107,17 @@
 - 浮点位级：`FpSign32/64 FpAbs32/64 FpNeg32/64 DefaultNan32/64 IsNan32/64 FpCompareNZCV`
 - 转换：`FpToUnsigned FpToSigned IntToFp`
 
+`include/switchrecomp/common/numeric_emit.h`（header-only，发射桥）：
+
+- `Prologue / Zext32 / Sext32 / Shl / Shr / Sar / AddWithFlags / SubWithFlags / ConditionHolds / FpToSigned / FpToUnsigned / IntToFp`：生成调用数值层的 C++ 表达式字符串。
+- `SelfTestProgram()`：仅用上述 helper 拼出的完整可编译程序，覆盖全部 UB 边界输入，供端到端测试编译运行。
+
 NZCV 布局与运行时一致：`bit31=N, bit30=Z, bit29=C, bit28=V`。
 
 ## 5. 验证与基准
 
 - 单元测试：`tests/unit/common/test_numeric.cpp`，覆盖位往返、宽度、移位 UB 边界、NZCV 溢出/进位/借位、16×16 条件码真值表、小域穷举、FP 位操作/NaN/FCMP、FCVTZ* 饱和与精确边界、SCVTF/UCVTF。
+- 端到端：`tests/integration/test_numeric_codegen.cpp`，把 `SelfTestProgram()` 用真实编译器 `-O2` 编译并运行，在 W 高位残留、`shift>=64`、32 位进位、NaN/越界转换、负数算术右移、溢出后条件码等 UB 边界上校验输出；无 g++ 的 runner 上跳过。
 - 构建验证：`cmake -B build -G Ninja && cmake --build build && ctest --test-dir build --output-on-failure`，全部测试通过；CI 的 Linux 与 Windows 均构建运行。
 - 性能可行性：`benchmarks/bench_numeric.cpp` 对本层热点函数做吞吐基准，用于验证「内联后零开销」这一核心声明。每个用例都带一个确定性伪随机输入流（PRNG 本身计入测量），因此数字是「输入 + 运算」的上界。
 

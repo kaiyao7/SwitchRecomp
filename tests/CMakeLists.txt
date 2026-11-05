@@ -30,6 +30,7 @@ add_executable(sr_tests
     unit/gpu/test_vulkan_backend.cpp
     unit/gpu/test_compute_dispatch.cpp
     integration/translator/test_golden.cpp
+    integration/test_numeric_codegen.cpp
     integration/test_e2e_add.cpp
     integration/test_e2e_float.cpp
     integration/test_e2e_fcmp.cpp
