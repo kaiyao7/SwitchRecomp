@@ -411,5 +411,3 @@ TEST(NsoModuleSystem, RejectsUnresolvedSymbol) {
     auto r = LoadModuleSystem(mm, std::move(modules), 0x7000000000ULL);
     EXPECT_FALSE(r);
 }
-
-} // namespace

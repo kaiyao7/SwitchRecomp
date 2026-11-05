@@ -106,7 +106,17 @@ std::string ReadFile(const std::string& path) {
     EXPECT_TRUE(ifs.good()) << "cannot open golden file: " << path;
     std::ostringstream ss;
     ss << ifs.rdbuf();
-    return ss.str();
+    std::string s = ss.str();
+    // Golden fixtures are stored with LF endings. A checkout performed with
+    // core.autocrlf enabled turns them into CRLF, while Module::to_json()
+    // always emits LF. Normalise line endings so the comparison is portable.
+    std::string out;
+    out.reserve(s.size());
+    for (size_t i = 0; i < s.size(); ++i) {
+        if (s[i] == '\r' && i + 1 < s.size() && s[i + 1] == '\n') continue;
+        out.push_back(s[i]);
+    }
+    return out;
 }
 
 std::string TranslateToJson(sr::common::u32 word) {

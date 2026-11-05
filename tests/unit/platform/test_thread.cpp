@@ -16,7 +16,7 @@ TEST(PlatformThread, MutexConcurrentIncrement) {
     threads.reserve(kThreads);
 
     for (int t = 0; t < kThreads; ++t) {
-        threads.push_back(std::make_unique<Thread>([&mtx, &counter]() {
+        threads.push_back(std::make_unique<Thread>([&mtx, &counter, kIters]() {
             for (int i = 0; i < kIters; ++i) {
                 MutexGuard g(mtx);
                 ++counter;
