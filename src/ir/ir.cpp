@@ -490,6 +490,8 @@ const char* OpcodeToString(Opcode op) {
         case Opcode::Div: return "Div";
         case Opcode::Load: return "Load";
         case Opcode::Store: return "Store";
+        case Opcode::LoadMem: return "LoadMem";
+        case Opcode::StoreMem: return "StoreMem";
         case Opcode::Branch: return "Branch";
         case Opcode::CondBranch: return "CondBranch";
         case Opcode::Return: return "Return";
@@ -532,6 +534,8 @@ Opcode StringToOpcode(const std::string& s) {
     if (s == "Div") return Opcode::Div;
     if (s == "Load") return Opcode::Load;
     if (s == "Store") return Opcode::Store;
+    if (s == "LoadMem") return Opcode::LoadMem;
+    if (s == "StoreMem") return Opcode::StoreMem;
     if (s == "Branch") return Opcode::Branch;
     if (s == "CondBranch") return Opcode::CondBranch;
     if (s == "Return") return Opcode::Return;

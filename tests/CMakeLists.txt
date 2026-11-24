@@ -35,6 +35,7 @@ add_executable(sr_tests
     integration/test_e2e_float.cpp
     integration/test_e2e_fcmp.cpp
     integration/test_e2e_intcmp.cpp
+    integration/test_e2e_mem.cpp
     integration/test_e2e_fp64.cpp
     integration/test_e2e_fp_misc.cpp
     integration/test_e2e_fp_round.cpp

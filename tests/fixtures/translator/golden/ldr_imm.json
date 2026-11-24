@@ -5,7 +5,7 @@
       "blocks": [
         {
           "instructions": [
-            {"id": 2, "opcode": "Load", "type": "U64", "operands": [{"id": 1, "kind": "constant", "type": "U64", "value": 1}]}
+            {"id": 5, "opcode": "LoadMem", "type": "Void", "operands": [{"id": 1, "kind": "constant", "type": "U64", "value": 0}, {"id": 2, "kind": "constant", "type": "U64", "value": 1}, {"id": 3, "kind": "constant", "type": "U32", "value": 0}, {"id": 4, "kind": "constant", "type": "U32", "value": 8}, {"id": 3, "kind": "constant", "type": "U32", "value": 0}]}
           ]
         }
       ]

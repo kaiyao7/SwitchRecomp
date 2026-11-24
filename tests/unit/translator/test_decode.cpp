@@ -170,13 +170,66 @@ TEST(Translate, AsrImmediate) {
 TEST(Translate, LdrUnsignedOffset) {
     sr::common::u8 code[4];
     WordToBytes(0xF9400020u, code); // LDR x0, [x1]
-    ExpectOneInstr(code, Opcode::Load, 1u);
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs.size(), 1u);
+    ASSERT_EQ(instrs[0]->opcode(), Opcode::LoadMem);
+    ASSERT_EQ(instrs[0]->operands().size(), 5u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[0])->value(), 0u); // Rt
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[1])->value(), 1u); // Rn
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[2])->value(), 0u); // offset
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[3])->value(), 8u); // width
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[4])->value(), 0u); // zero-extend
 }
 
 TEST(Translate, StrUnsignedOffset) {
     sr::common::u8 code[4];
     WordToBytes(0xF9000020u, code); // STR x0, [x1]
-    ExpectOneInstr(code, Opcode::Store, 2u);
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs.size(), 1u);
+    ASSERT_EQ(instrs[0]->opcode(), Opcode::StoreMem);
+    ASSERT_EQ(instrs[0]->operands().size(), 4u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[0])->value(), 0u); // Rt
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[1])->value(), 1u); // Rn
+}
+
+TEST(Translate, LdrbUsesOneByte) {
+    sr::common::u8 code[4];
+    WordToBytes(0x39400020u, code); // LDRB w0, [x1]
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs[0]->opcode(), Opcode::LoadMem);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[3])->value(), 1u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[4])->value(), 0u);
+}
+
+TEST(Translate, LdrswSignExtendsWord) {
+    sr::common::u8 code[4];
+    WordToBytes(0xB9800020u, code); // LDRSW x0, [x1]
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs[0]->opcode(), Opcode::LoadMem);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[3])->value(), 4u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[4])->value(), 1u);
+}
+
+TEST(Translate, LdrsbWordFormSignExtendsTo32) {
+    sr::common::u8 code[4];
+    WordToBytes(0x39C00020u, code); // LDRSB w0, [x1]
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs[0]->opcode(), Opcode::LoadMem);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[3])->value(), 1u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[4])->value(), 2u);
+}
+
+TEST(Translate, LdrOffsetIsScaledBySize) {
+    sr::common::u8 code[4];
+    WordToBytes(0xF9400420u, code); // LDR x0, [x1, #8]
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[2])->value(), 8u);
 }
 
 TEST(Translate, BranchWithLink) {

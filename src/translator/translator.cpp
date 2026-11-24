@@ -246,22 +246,36 @@ bool DecodeSbfm(u32 word, u64 /*guest_addr*/, ConstantCache& cache, BasicBlock* 
     return true;
 }
 
-bool DecodeLdr(u32 word, u64 /*guest_addr*/, ConstantCache& cache, BasicBlock* bb) {
+// LDR/STR (immediate, unsigned offset): the whole size/opc family - LDRB,
+// LDRH, LDR, LDRSB, LDRSH, LDRSW and the matching stores. The previous
+// decoders dropped Rt and the imm12 offset completely: a load went into Rn
+// from address Rn, and a store used Rn as the address while keeping Rn as the
+// value width of 64 bits, whatever `size` said.
+//
+// opc: 00 = store, 01 = load and zero-extend, 10 = load and sign-extend to 64
+// bits (LDRSW and the 64-bit LDRSB/LDRSH forms), 11 = load and sign-extend to
+// 32 bits, then zero-extend (the W forms of LDRSB/LDRSH).
+bool DecodeLoadStoreUnsigned(u32 word, u64 /*guest_addr*/, ConstantCache& cache,
+                             BasicBlock* bb) {
     u32 size = ExtractBits(word, 31, 30);
-    u32 rn = ExtractBits(word, 9, 5);
-    Type ty = (size == 0b11) ? Type::U64()
-             : (size == 0b10) ? Type::U32()
-             : (size == 0b01) ? Type::U16()
-                              : Type::U8();
-    // Address placeholder: Rn register (offset 0 for the canonical sample).
-    bb->Append(cache.builder->CreateLoad(cache.Reg(rn), ty));
-    return true;
-}
-
-bool DecodeStr(u32 word, u64 /*guest_addr*/, ConstantCache& cache, BasicBlock* bb) {
+    u32 opc = ExtractBits(word, 23, 22);
+    u32 imm12 = ExtractBits(word, 21, 10);
     u32 rn = ExtractBits(word, 9, 5);
     u32 rt = ExtractBits(word, 4, 0);
-    bb->Append(cache.builder->CreateStore(cache.Reg(rn), cache.Reg(rt)));
+    u64 width = 1ull << size;
+    u64 offset = static_cast<u64>(imm12) << size;
+    if (opc == 0) {
+        bb->Append(cache.builder->CreateInstruction(
+            Opcode::StoreMem, Type::Void(),
+            {cache.Reg(rt), cache.Reg(rn), cache.Imm(offset),
+             cache.Imm(width)}));
+        return true;
+    }
+    u64 sign = opc == 1 ? 0 : (opc == 2 ? 1 : 2);
+    bb->Append(cache.builder->CreateInstruction(
+        Opcode::LoadMem, Type::Void(),
+        {cache.Reg(rt), cache.Reg(rn), cache.Imm(offset), cache.Imm(width),
+         cache.Imm(sign)}));
     return true;
 }
 
@@ -1003,8 +1017,9 @@ const DecodeEntry kDecodeTable[] = {
     // the unsigned-offset variants, checked first.
     {0x3FC00000u, 0x38400000u, Opcode::Load,       DecodeLdrReg},
     {0x3FC00000u, 0x38000000u, Opcode::Store,      DecodeStrReg},
-    {0x3FC00000u, 0x39400000u, Opcode::Load,       DecodeLdr},
-    {0x3FC00000u, 0x39000000u, Opcode::Store,      DecodeStr},
+    // LDR/STR immediate unsigned offset (all size/opc variants: LDRB/LDRH/STRB,
+    // LDRSW, LDRSB/LDRSH; V=0 is pinned by the mask so FP forms stay separate).
+    {0x3F000000u, 0x39000000u, Opcode::LoadMem, DecodeLoadStoreUnsigned},
     {0xFC000000u, 0x14000000u, Opcode::Branch,     DecodeB},
     {0xFC000000u, 0x94000000u, Opcode::Call,       DecodeBl},
     {0x7F000000u, 0x34000000u, Opcode::CondBranch, DecodeCbz},
