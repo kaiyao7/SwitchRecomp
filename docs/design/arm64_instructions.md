@@ -37,6 +37,8 @@
 | 20 | CBNZ | compare_branch | `0x7E000000` | `0x35000000` |
 | 21 | RET | branch_reg | `0xFFFFFC1F` | `0xD65F0000` |
 | 22 | NOP | hint | `0xFFFFFFFF` | `0xD503201F` |
+| 23 | TBZ | compare_branch | `0x7F000000` | `0x36000000` |
+| 24 | TBNZ | compare_branch | `0x7F000000` | `0x37000000` |
 
 ## 解码策略建议
 

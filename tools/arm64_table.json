@@ -404,6 +404,44 @@
       "fields": [],
       "affects_flags": "no",
       "pseudocode": "no operation"
+    },
+    {
+      "mnemonic": "TBZ",
+      "variant": "test_bit_and_branch",
+      "category": "compare_branch",
+      "syntax": "TBZ <R><t>, #<imm>, <label>",
+      "note": "b5 (bit 31) is the upper bit of the bit index and also selects the W (b5=0) or X (b5=1) register form",
+      "fixed_bits": { "value": "0b00110110000000000000000000000000", "mask": "0b01111111000000000000000000000000" },
+      "mask": "0x7F000000",
+      "value": "0x36000000",
+      "fields": [
+        { "name": "b5", "bits": "31", "desc": "bit index bit 5: 0=tests W, 1=tests X" },
+        { "name": "op", "bits": "24", "desc": "0=TBZ, 1=TBNZ" },
+        { "name": "b40", "bits": "23-19", "desc": "bit index bits 4-0" },
+        { "name": "imm14", "bits": "18-5", "desc": "signed branch offset in instructions" },
+        { "name": "Rt", "bits": "4-0", "desc": "register whose bit is tested" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "if (R<t><b5:b40> == 0) PC = PC + SignExtend(imm14 << 2)"
+    },
+    {
+      "mnemonic": "TBNZ",
+      "variant": "test_bit_and_branch",
+      "category": "compare_branch",
+      "syntax": "TBNZ <R><t>, #<imm>, <label>",
+      "note": "Same encoding as TBZ with op=1; b5 is the upper bit of the bit index and selects the register width",
+      "fixed_bits": { "value": "0b00110111000000000000000000000000", "mask": "0b01111111000000000000000000000000" },
+      "mask": "0x7F000000",
+      "value": "0x37000000",
+      "fields": [
+        { "name": "b5", "bits": "31", "desc": "bit index bit 5: 0=tests W, 1=tests X" },
+        { "name": "op", "bits": "24", "desc": "1=TBNZ" },
+        { "name": "b40", "bits": "23-19", "desc": "bit index bits 4-0" },
+        { "name": "imm14", "bits": "18-5", "desc": "signed branch offset in instructions" },
+        { "name": "Rt", "bits": "4-0", "desc": "register whose bit is tested" }
+      ],
+      "affects_flags": "no",
+      "pseudocode": "if (R<t><b5:b40> != 0) PC = PC + SignExtend(imm14 << 2)"
     }
   ]
 }

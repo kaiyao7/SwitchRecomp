@@ -316,6 +316,38 @@ bool DecodeCbnz(u32 word, u64 /*guest_addr*/, ConstantCache& cache, BasicBlock* 
     return true;
 }
 
+// TBZ / TBNZ: test bit <b5:b40> of Rt and branch if the bit is clear (TBZ)
+// or set (TBNZ). Emitted as a single TestBitBranch whose operands are
+// {Rt, bit index, branch-if-set, target guest address}. The node reads the bit
+// directly, so Rt survives untouched and NZCV is not clobbered - TBZ/TBNZ are
+// not flag-setting instructions. b5 (encoding bit 31) is the upper bit of the
+// index and only selects between the W (b5 == 0) and X (b5 == 1) register
+// forms, which TestBitBranch does not need to distinguish.
+bool DecodeTestBitBranch(u32 word, u64 guest_addr, ConstantCache& cache,
+                         BasicBlock* bb, bool branch_if_set) {
+    u32 b5 = ExtractBits(word, 31, 31);
+    u32 b40 = ExtractBits(word, 23, 19);
+    u32 rt = ExtractBits(word, 4, 0);
+    u32 bit = (b5 << 5) | b40;
+    u32 imm14 = ExtractBits(word, 18, 5);
+    s64 offset = static_cast<s64>(SignExtend(static_cast<u64>(imm14) << 2, 16));
+    u64 target = static_cast<u64>(static_cast<s64>(guest_addr) + offset);
+
+    bb->Append(cache.builder->CreateInstruction(
+        Opcode::TestBitBranch, Type::Void(),
+        {cache.Reg(rt), cache.Imm(bit), cache.Imm(branch_if_set ? 1u : 0u),
+         cache.builder->CreateConstant(target, Type::U64())}));
+    return true;
+}
+
+bool DecodeTbz(u32 word, u64 guest_addr, ConstantCache& cache, BasicBlock* bb) {
+    return DecodeTestBitBranch(word, guest_addr, cache, bb, false);
+}
+
+bool DecodeTbnz(u32 word, u64 guest_addr, ConstantCache& cache, BasicBlock* bb) {
+    return DecodeTestBitBranch(word, guest_addr, cache, bb, true);
+}
+
 bool DecodeRet(u32 /*word*/, u64 /*guest_addr*/, ConstantCache& cache, BasicBlock* bb) {
     bb->Append(cache.builder->CreateReturn());
     return true;
@@ -1007,6 +1039,10 @@ const DecodeEntry kDecodeTable[] = {
     {0x3FC00000u, 0x39000000u, Opcode::Store,      DecodeStr},
     {0xFC000000u, 0x14000000u, Opcode::Branch,     DecodeB},
     {0xFC000000u, 0x94000000u, Opcode::Call,       DecodeBl},
+    // TBZ/TBNZ (test bit and branch). Mask covers bit 31 (b5, upper bit index
+    // and register width) and bits 30-24 (op); 0x36 = TBZ, 0x37 = TBNZ.
+    {0x7F000000u, 0x36000000u, Opcode::TestBitBranch, DecodeTbz},
+    {0x7F000000u, 0x37000000u, Opcode::TestBitBranch, DecodeTbnz},
     {0x7F000000u, 0x34000000u, Opcode::CondBranch, DecodeCbz},
     {0x7F000000u, 0x35000000u, Opcode::CondBranch, DecodeCbnz},
     // MOVK (0x7F800000 group).
@@ -1108,6 +1144,20 @@ common::Result<std::unique_ptr<ir::Module>> Translate(
                 (tgt_c->value() - options.base_address) / 4u;
             size_t ir_ordinal = word_first_ir[target_word];
             ops[0] = builder->CreateConstant(static_cast<u64>(ir_ordinal),
+                                             Type::U64());
+            continue;
+        }
+        if (instr->opcode() == Opcode::TestBitBranch) {
+            // TBZ/TBNZ: op3 is the target guest address; replace it with the
+            // ordinal of the first IR instruction of the target guest word.
+            auto& ops = instr->operands();
+            if (ops.size() != 4) continue;
+            auto* tgt_c = dynamic_cast<Constant*>(ops[3]);
+            if (!tgt_c || tgt_c->type().id != TypeId::U64) continue;
+            u64 target_word =
+                (tgt_c->value() - options.base_address) / 4u;
+            size_t ir_ordinal = word_first_ir[target_word];
+            ops[3] = builder->CreateConstant(static_cast<u64>(ir_ordinal),
                                              Type::U64());
             continue;
         }

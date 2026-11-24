@@ -728,6 +728,33 @@ void LowerInstruction(const ir::Instruction* i, std::string& out) {
             out.append("]) goto bb_1; else goto bb_0;");
             return;
         }
+        case Opcode::TestBitBranch: {
+            // TBZ/TBNZ form: operands {Rt register constant, U64 bit index,
+            // U64 branch-if-set (0/1), U64 target IR ordinal}. The bit is read
+            // straight from the register, so Rt is not modified and NZCV is
+            // left untouched - exactly what the guest instruction does.
+            const u64 rt = RegIndex(op0);
+            u64 bit = 0, want = 1, target = 0;
+            const auto& bit_ops = i->operands();
+            if (bit_ops.size() == 4) {
+                if (auto* bc = dynamic_cast<const ir::Constant*>(bit_ops[1]))
+                    bit = bc->value();
+                if (auto* wc = dynamic_cast<const ir::Constant*>(bit_ops[2]))
+                    want = wc->value();
+                if (auto* tc = dynamic_cast<const ir::Constant*>(bit_ops[3]))
+                    target = tc->value();
+            }
+            out.append("if (((ctx->x[");
+            AppendDec(out, rt);
+            out.append("] >> ");
+            AppendDec(out, bit);
+            out.append(") & 1u) == ");
+            AppendDec(out, want);
+            out.append("u) goto glabel");
+            AppendDec(out, target);
+            out.push_back(';');
+            return;
+        }
         case Opcode::Return:
             out.append("return;");
             return;

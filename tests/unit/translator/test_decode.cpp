@@ -954,3 +954,52 @@ TEST(Translate, Fadd4SFields) {
     EXPECT_EQ(dynamic_cast<Constant*>(add->operands()[1])->value(), 0u);
     EXPECT_EQ(dynamic_cast<Constant*>(add->operands()[2])->value(), 1u);
 }
+
+// ---- TBZ / TBNZ: test bit and branch ------------------------------------
+//
+// Each guest word decodes to a single TestBitBranch node with operands
+// {Rt, bit index, branch-if-set, target ordinal}; the post-decode pass
+// resolves the target address to an IR ordinal, like B.cond.
+
+TEST(Translate, TbzEmitsTestBitBranch) {
+    sr::common::u8 code[4];
+    WordToBytes(0x36100001u, code); // tbz w1, #2, .+0
+    ExpectOneInstr(code, Opcode::TestBitBranch, 4u);
+}
+
+TEST(Translate, TbzLayoutAndBitIndex) {
+    sr::common::u8 code[4];
+    WordToBytes(0x36100001u, code);
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs.size(), 1u);
+
+    Instruction* tbz = instrs[0];
+    ASSERT_EQ(tbz->opcode(), Opcode::TestBitBranch);
+    ASSERT_EQ(tbz->operands().size(), 4u);
+    EXPECT_EQ(dynamic_cast<Constant*>(tbz->operands()[0])->value(), 1u);  // Rt
+    EXPECT_EQ(dynamic_cast<Constant*>(tbz->operands()[1])->value(), 2u);  // bit
+    EXPECT_EQ(dynamic_cast<Constant*>(tbz->operands()[2])->value(), 0u);  // if set
+    EXPECT_EQ(dynamic_cast<Constant*>(tbz->operands()[3])->value(), 0u);  // target
+}
+
+TEST(Translate, TbnzBranchIfSetIsTrue) {
+    sr::common::u8 code[4];
+    WordToBytes(0x37F80002u, code); // tbnz w2, #31, .+0
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs.size(), 1u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[0])->value(), 2u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[1])->value(), 31u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[2])->value(), 1u);
+}
+
+TEST(Translate, TbnzUpperBitIndexUsesB5) {
+    sr::common::u8 code[4];
+    WordToBytes(0xB7400003u, code); // tbnz x3, #40, .+0
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs.size(), 1u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[0])->value(), 3u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[1])->value(), 40u);
+}
