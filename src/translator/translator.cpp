@@ -159,11 +159,20 @@ bool DecodeMovz(u32 word, u64 /*guest_addr*/, ConstantCache& cache, BasicBlock* 
 }
 
 bool DecodeMovn(u32 word, u64 /*guest_addr*/, ConstantCache& cache, BasicBlock* bb) {
-    // MOVN Xd, #imm -> Not(imm << (hw*16)).
+    // MOVN <Wd|Xd>, #imm16, LSL #(hw*16) -> Mov to the ACTUAL Rd with the
+    // pre-computed complement. The old lowering emitted Not(imm), which has no
+    // destination operand: codegen took the register index from operand 0, and
+    // an immediate is not a register, so every MOVN wrote x0 regardless of Rd.
+    // The complement is a translation-time constant, so no Not node is needed.
+    // A 32-bit form (sf == 0) complements within 32 bits and zero-extends.
+    u32 sf = ExtractBits(word, 31, 31);
     u32 hw = ExtractBits(word, 22, 21);
     u32 imm16 = ExtractBits(word, 20, 5);
+    u32 rd = ExtractBits(word, 4, 0);
     u64 imm = static_cast<u64>(imm16) << (hw * 16);
-    bb->Append(cache.builder->CreateNot(cache.Imm(imm)));
+    u64 value = ~imm;
+    if (!sf) value &= 0xFFFFFFFFull;
+    bb->Append(cache.builder->CreateMov(cache.Reg(rd), cache.Imm(value)));
     return true;
 }
 
