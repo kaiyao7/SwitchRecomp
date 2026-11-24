@@ -5,7 +5,7 @@
       "blocks": [
         {
           "instructions": [
-            {"id": 2, "opcode": "Not", "type": "U32", "operands": [{"id": 1, "kind": "constant", "type": "U32", "value": 0}]}
+            {"id": 3, "opcode": "Mov", "type": "U64", "operands": [{"id": 2, "kind": "constant", "type": "U64", "value": 0}, {"id": 1, "kind": "constant", "type": "U32", "value": 4294967295}]}
           ]
         }
       ]

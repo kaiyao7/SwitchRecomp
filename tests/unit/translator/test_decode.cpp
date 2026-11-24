@@ -145,8 +145,39 @@ TEST(Translate, Eor) {
 
 TEST(Translate, Movn) {
     sr::common::u8 code[4];
-    WordToBytes(0x12800000u, code); // MOVN x0, #0
-    ExpectOneInstr(code, Opcode::Not, 1u);
+    WordToBytes(0x12800000u, code); // MOVN W0, #0 -> x0 = 0xFFFFFFFF
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs.size(), 1u);
+    ASSERT_EQ(instrs[0]->opcode(), Opcode::Mov);
+    ASSERT_EQ(instrs[0]->operands().size(), 2u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[0])->value(), 0u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[1])->value(),
+              0xFFFFFFFFull);
+}
+
+TEST(Translate, MovnHonoursDestinationRegister) {
+    sr::common::u8 code[4];
+    WordToBytes(0x92800007u, code); // MOVN X7, #0 -> x7 = 0xFFFF...
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs.size(), 1u);
+    ASSERT_EQ(instrs[0]->opcode(), Opcode::Mov);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[0])->value(), 7u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[1])->value(),
+              0xFFFFFFFFFFFFFFFFull);
+}
+
+TEST(Translate, MovnShiftedImmediate) {
+    sr::common::u8 code[4];
+    // MOVN X1, #0x1234, LSL #16 -> x1 = ~(0x1234 << 16)
+    WordToBytes(0x92800001u | (1u << 21) | (0x1234u << 5), code);
+    auto module = TranslateOne(code);
+    const auto& instrs = module->functions()[0]->blocks()[0]->instructions();
+    ASSERT_EQ(instrs.size(), 1u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[0])->value(), 1u);
+    EXPECT_EQ(dynamic_cast<Constant*>(instrs[0]->operands()[1])->value(),
+              ~(0x1234ull << 16));
 }
 
 TEST(Translate, LslImmediate) {
