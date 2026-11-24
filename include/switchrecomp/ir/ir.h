@@ -68,7 +68,7 @@ enum class Opcode : u16 {
     // RC-FP-003: floating-point divide (FDIV S/D)
     Div,
     // Memory
-    Load, Store,
+    Load, Store, LoadMem, StoreMem,
     // Control flow
     Branch, CondBranch, Return, Call, IndirectBranch,
     // Conversion

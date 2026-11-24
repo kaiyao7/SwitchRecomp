@@ -688,6 +688,72 @@ void LowerInstruction(const ir::Instruction* i, std::string& out) {
             AppendDec(out, rt); out.append("];");
             return;
         }
+        case Opcode::LoadMem: {
+            // LDR/LDRB/LDRH/LDRSW form: operands {Rt, Rn, offset, width,
+            // sign mode}. The address is computed inline, so neither Rn nor
+            // Rt has to double as the address register (the legacy Load node
+            // derives its destination from operand 0 and cannot express
+            // "load into Rt from Rn + offset").
+            // sign mode: 0 = zero-extend, 1 = sign-extend to 64 bits,
+            //            2 = sign-extend to 32 bits, then zero-extend.
+            const auto& lm = i->operands();
+            u64 dst = 0, base = 0, off = 0, width = 8, sign = 0;
+            if (lm.size() == 5) {
+                if (auto* c = dynamic_cast<const ir::Constant*>(lm[0])) dst = c->value();
+                if (auto* c = dynamic_cast<const ir::Constant*>(lm[1])) base = c->value();
+                if (auto* c = dynamic_cast<const ir::Constant*>(lm[2])) off = c->value();
+                if (auto* c = dynamic_cast<const ir::Constant*>(lm[3])) width = c->value();
+                if (auto* c = dynamic_cast<const ir::Constant*>(lm[4])) sign = c->value();
+            }
+            const char* cty = width == 1 ? (sign ? "int8_t" : "uint8_t")
+                            : width == 2 ? (sign ? "int16_t" : "uint16_t")
+                            : width == 4 ? (sign ? "int32_t" : "uint32_t")
+                                         : "uint64_t";
+            out.append("ctx->x[");
+            AppendDec(out, dst);
+            out.append("] = ");
+            if (sign == 2) out.append("(uint64_t)(uint32_t)(int32_t)");
+            else out.append("(uint64_t)");
+            out.append("*(const ");
+            out.append(cty);
+            out.append("*)sr_rt_guest_to_host(ctx, ctx->x[");
+            AppendDec(out, base);
+            out.append("] + ");
+            AppendDec(out, off);
+            out.append("ull, ");
+            AppendDec(out, width);
+            out.append(", 0);");
+            return;
+        }
+        case Opcode::StoreMem: {
+            // STR/STRB/STRH form: operands {Rt, Rn, offset, width}.
+            const auto& sm = i->operands();
+            u64 src = 0, base = 0, off = 0, width = 8;
+            if (sm.size() == 4) {
+                if (auto* c = dynamic_cast<const ir::Constant*>(sm[0])) src = c->value();
+                if (auto* c = dynamic_cast<const ir::Constant*>(sm[1])) base = c->value();
+                if (auto* c = dynamic_cast<const ir::Constant*>(sm[2])) off = c->value();
+                if (auto* c = dynamic_cast<const ir::Constant*>(sm[3])) width = c->value();
+            }
+            const char* sty = width == 1 ? "uint8_t"
+                            : width == 2 ? "uint16_t"
+                            : width == 4 ? "uint32_t"
+                                         : "uint64_t";
+            out.append("*( ");
+            out.append(sty);
+            out.append("*)sr_rt_guest_to_host(ctx, ctx->x[");
+            AppendDec(out, base);
+            out.append("] + ");
+            AppendDec(out, off);
+            out.append("ull, ");
+            AppendDec(out, width);
+            out.append(", 1) = (");
+            out.append(sty);
+            out.append(")ctx->x[");
+            AppendDec(out, src);
+            out.append("];");
+            return;
+        }
         case Opcode::Branch: {
             // RC-FIX-002: a Branch with one operand carries a resolved IR
             // instruction ordinal -> goto glabelN. Hand-built BasicBlock
