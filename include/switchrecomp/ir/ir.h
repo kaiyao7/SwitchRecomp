@@ -70,7 +70,7 @@ enum class Opcode : u16 {
     // Memory
     Load, Store,
     // Control flow
-    Branch, CondBranch, Return, Call, IndirectBranch,
+    Branch, CondBranch, TestBitBranch, Return, Call, IndirectBranch,
     // Conversion
     Cast,
     // Special

@@ -504,6 +504,7 @@ const char* OpcodeToString(Opcode op) {
         case Opcode::Neg: return "Neg";
         case Opcode::Abs: return "Abs";
         case Opcode::Select: return "Select";
+        case Opcode::TestBitBranch: return "TestBitBranch";
         case Opcode::Sqrt: return "Sqrt";
         case Opcode::FrintN: return "FrintN";
         case Opcode::FrintP: return "FrintP";
@@ -534,6 +535,7 @@ Opcode StringToOpcode(const std::string& s) {
     if (s == "Store") return Opcode::Store;
     if (s == "Branch") return Opcode::Branch;
     if (s == "CondBranch") return Opcode::CondBranch;
+    if (s == "TestBitBranch") return Opcode::TestBitBranch;
     if (s == "Return") return Opcode::Return;
     if (s == "Call") return Opcode::Call;
     if (s == "IndirectBranch") return Opcode::IndirectBranch;

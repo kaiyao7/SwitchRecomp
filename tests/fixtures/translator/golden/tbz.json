@@ -1,0 +1,14 @@
+{
+  "functions": [
+    {
+      "guest_address": 0,
+      "blocks": [
+        {
+          "instructions": [
+            {"id": 5, "opcode": "TestBitBranch", "type": "Void", "operands": [{"id": 1, "kind": "constant", "type": "U64", "value": 1}, {"id": 2, "kind": "constant", "type": "U32", "value": 2}, {"id": 3, "kind": "constant", "type": "U32", "value": 0}, {"id": 6, "kind": "constant", "type": "U64", "value": 0}]}
+          ]
+        }
+      ]
+    }
+  ]
+}

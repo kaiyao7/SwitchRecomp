@@ -48,6 +48,8 @@ const Sample kSamples[] = {
     {"b_cond",        0x54000000u},
     {"cbz",           0x34000000u},
     {"cbnz",          0x35000000u},
+    {"tbz",           0x36100001u},
+    {"tbnz",          0x37F80002u},
     {"ret",           0xD65F03C0u},
     {"cmp_imm",       0xF100041Fu},
     {"adrp",          0x90000000u},
